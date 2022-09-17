@@ -19,8 +19,8 @@ noise_p = c(0, 5, 25, 50)
 iter = 100
 
 # save ARI results
-ARI_mat = matrix(NA, nrow = iter, ncol = 3)
-colnames(ARI_mat) = c("skkm", "skm", "kkm")
+# ARI_mat = matrix(NA, nrow = iter, ncol = 3)
+# colnames(ARI_mat) = c("skkm", "skm", "kkm")
 ari_list = list()
 
 # save fitting results
@@ -28,8 +28,8 @@ skkm_list = skm_list = kkm_list = list()
 skkm_res_list = skm_res_list = kkm_res_list = list()
 
 # save time results
-time_mat = matrix(NA, nrow = iter, ncol = 3)
-colnames(time_mat) = c("skkm", "skm", "kkm")
+# time_mat = matrix(NA, nrow = iter, ncol = 3)
+# colnames(time_mat) = c("skkm", "skm", "kkm")
 time_list = list()
 
 i = 1
@@ -37,6 +37,13 @@ j = 1
 
 for (j in j:length(noise_p)) {
   i = 1
+  
+  ARI_mat = matrix(NA, nrow = iter, ncol = 3)
+  colnames(ARI_mat) = c("skkm", "skm", "kkm")
+  
+  time_mat = matrix(NA, nrow = iter, ncol = 3)
+  colnames(time_mat) = c("skkm", "skm", "kkm")
+  
   for (i in i:iter) {
     cat(j, "th setting", i, "th iteration \n")
     # dat = generateMultiorange(n = n, p = p, seed = 2, with_noise = TRUE, noise_p = 5)
