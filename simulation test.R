@@ -15,6 +15,7 @@ source(r"(.\R\simfuncs.R)")
 n = 100
 p = 2
 noise_p = c(0, 5, 25, 50)
+# noise_p = c(0)
 iter = 100
 
 # save ARI results
@@ -31,22 +32,26 @@ time_mat = matrix(NA, nrow = iter, ncol = 3)
 colnames(time_mat) = c("skkm", "skm", "kkm")
 time_list = list()
 
+i = 1
+j = 1
 
-for (j in 1:length(noise_p)) {
-  for (i in 1:iter) {
-    cat(j, "th setting", i, "th iteration")
+for (j in j:length(noise_p)) {
+  i = 1
+  for (i in i:iter) {
+    cat(j, "th setting", i, "th iteration \n")
     # dat = generateMultiorange(n = n, p = p, seed = 2, with_noise = TRUE, noise_p = 5)
     dat = generateTwoorange(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j])
     # dat = generateMultiMoon(each_n = n, sigma = 0.5, seed = 1, noise_p = 5, noise_sd = 3)
     # dat = generateTwoMoon(each_n = n, sigma = 0.5, seed = 1, noise_p = 5, noise_sd = 3)
     
     # sigma = kernlab::sigest(scale(dat$x), scale = FALSE)[3]
-    sigma = 1.5
+    # sigma = 1.5
+    sigma = 1.0
     
     # Sparse kernel k-means algorithm
     skkm_t = system.time({
       tuned_skkm = tune.skkm(x = dat$x, nCluster = 2, s = NULL, ns = 10, nPerms = 25,
-                             nStart = 10, kernel = "gaussian-2way", kparam = sigma, opt = TRUE)
+                             nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE)
     })
     skkm_clusters = tuned_skkm$optModel$opt_clusters
     ari_skkm = adj.rand.index(dat$y, skkm_clusters)
@@ -79,7 +84,7 @@ for (j in 1:length(noise_p)) {
     kkm_list[[i]] = kkm_res
     time_mat[i, "kkm"] = kkm_t[3]
     
-    save.image("./orange_simulation_n=100_20220915.Rdata")
+    save.image("./orange_simulation_n=100_20220916_scale=FALSE_sigma=1.Rdata")
   }
   skkm_res_list[[j]] = skkm_list
   skm_res_list[[j]] = skm_list
@@ -89,8 +94,9 @@ for (j in 1:length(noise_p)) {
   time_list[[j]] = time_mat
   
   
-  save.image("./orange_simulation_n=100_20220915.Rdata")
+  save.image("./orange_simulation_n=100_20220916_scale=FALSE_sigma=1.Rdata")
 }
 
+sapply(ari_list, colMeans)
 
 

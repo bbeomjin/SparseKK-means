@@ -85,14 +85,14 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
   for (j in 1:length(seeds)) {
     # initialization
     # set.seed(seeds[j])
-    clusters0 = sample(1:nCluster, size = n, replace = TRUE)
+    # clusters0 = sample(1:nCluster, size = n, replace = TRUE)
     # aa = make_anovaKernel(x, x, kernel = kernel, kparam = sigma)
     # theta = rep(1 / sqrt(3), 3)
     # K = combine_kernel(aa, theta)
     # fit = kkmeans2(K, centers = nCluster)
     # clusters0 = fit@.Data
     
-    res[[j]] = skkm_core(x = x, clusters0 = clusters0, theta0 = NULL, s = s, weights = weights,
+    res[[j]] = skkm_core(x = x, clusters = nCluster, theta = NULL, s = s, weights = weights,
                          kernel = kernel, kparam = kparam, ...)
   }
   if (opt) {
@@ -114,46 +114,52 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
   return(out)
 }
 
-skkm_core = function(x, clusters0 = NULL, theta0 = NULL, s = 1.5, weights = NULL,
+skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weights = NULL,
                kernel = "linear", kparam = 1, maxiter = 100, eps = 1e-5) 
 {
   call = match.call()
   n = nrow(x)
   # p = ncol(x)
   
-  if (is.null(weights)) {
-    weights = rep(1, n)
-  }
-  
   # initialization
-  init_clusters = clusters0
   anovaKernel = make_anovaKernel(x = x, y = x, kernel = kernel, kparam = kparam)
+  theta0 = theta
   
   if (is.null(theta0)) {
     theta0 = rep(1 / sqrt(anovaKernel$numK), anovaKernel$numK)
   }
   
+  if (is.null(weights)) {
+    weights = rep(1, n)
+  }
+  
+  if (length(clusters) == 1) {
+    nCluster = clusters
+    init_wcd_vec = numeric(nInit)
+    init_clusters_list = vector("list", nInit)
+    for (i in 1:nInit) {
+      clusters0 = sample(1:nCluster, size = n, replace = TRUE)
+      init_clusters_list[[i]] = clusters0
+      clusters = updateCs(anovaKernel = anovaKernel, theta = theta0, 
+                          clusters = clusters0, weights = weights)$clusters
+      wcd = GetWCD(anovaKernel, clusters = clusters, weights = weights)
+      init_wcd_vec[i] = sum(theta0 * wcd)
+    }
+    init_clusters = clusters0 = init_clusters_list[[which.min(init_wcd_vec)]]
+  } else {
+    init_clusters = clusters0 = clusters
+  }
+  
   td_vec = wcd_vec = bcd_vec = c()
   
-  for (i in 1:maxiter) {
+  for (iter in 1:maxiter) {
     
     # Update clusters
-    # clusters = kkk(combine_kernel(anovaKernel, theta = theta0), 2)
-    # clusters0 = sample(1:nCluster, size = n, replace = TRUE)
-    
-    # if (attr(weights, "type") == "auto") {
-    #   weights0 = weights
-    #   NbyC = table(clusters0)
-    #   weights = 1 / as.numeric(NbyC[clusters0])
-    #   attr(weights, "type") = attr(weights0, "type")
-    # }
-    
     clusters = updateCs(anovaKernel = anovaKernel, theta = theta0, 
                         clusters = clusters0, weights = weights)$clusters
     
+    
     # plot(dat$x[, 1:2], col = clusters)
-    # RKHS_d2 = RKHS_dist2(x, theta = theta0, g = clusters0, kernel = kernel, kparam = kparam)
-    # clusters = apply(RKHS_d, MARGIN = 1, which.min)
     
     # Update theta
     wcd = GetWCD(anovaKernel, clusters = clusters, weights = weights)
@@ -172,9 +178,9 @@ skkm_core = function(x, clusters0 = NULL, theta0 = NULL, s = 1.5, weights = NULL
     # theta * td
     # sum(theta0 * wcd) - sum(theta * wcd)
     
-    td_vec[i] = sum(theta * td)
-    wcd_vec[i] = sum(theta * wcd)
-    bcd_vec[i] = sum(theta * bcd)
+    td_vec[iter] = sum(theta * td)
+    wcd_vec[iter] = sum(theta * wcd)
+    bcd_vec[iter] = sum(theta * bcd)
     
     # print((sum(abs(theta - theta0)) / sum(theta0)))
     if ((sum(abs(theta - theta0)) / sum(theta0)) < eps) {
@@ -185,5 +191,5 @@ skkm_core = function(x, clusters0 = NULL, theta0 = NULL, s = 1.5, weights = NULL
     }
   }
   return(list(clusters = clusters, theta = theta, weights = weights, 
-              iteration = i, td = td_vec, wcd = wcd_vec, bcd = bcd_vec, init_clusters = init_clusters))
+              iteration = iter, td = td_vec, wcd = wcd_vec, bcd = bcd_vec, init_clusters = init_clusters))
 }
