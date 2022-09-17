@@ -76,7 +76,22 @@ for (j in j:length(noise_p)) {
     
     # Kernel k-means algorithm
     kkm_t = system.time({
-      kkm_res = kkmeans(dat$x, centers = 2, kernel = "rbfdot", kpar = list(sigma = sigma))
+      kkm_fit_list = list()
+      kkm_fit_wcd = c()
+      for (kk in 1:20) {
+        KKK = list()
+        kkm_res_temp = kkmeans(dat$x, centers = 2, kernel = "rbfdot", kpar = list(sigma = sigma))
+        kkm_fit_list[[kk]] = kkm_res_temp
+        
+        # computing within-cluster distance of kkmeans
+        KKK$K = list(kernlab::kernelMatrix(rbfdot(sigma = sigma), dat$x, dat$x))
+        KKK$numK = 1
+        kkm_fit_wcd[kk] = GetWCD(KKK, clusters = kkm_res_temp@.Data, weights = rep(1, nrow(dat$x)))
+      }
+      kkm_res = kkm_fit_list[[which.min(kkm_fit_wcd)]]
+      # plot(dat$x[, 1:2], col = kkm_res@.Data,
+      #      pch = 16, cex = 1.5,
+      #      xlab = "x1", ylab = "y1", main = "kkmeans")
     })
     kkm_clusters = kkm_res@.Data
     ari_kkm = adj.rand.index(dat$y, kkm_clusters)
@@ -84,7 +99,7 @@ for (j in j:length(noise_p)) {
     kkm_list[[i]] = kkm_res
     time_mat[i, "kkm"] = kkm_t[3]
     
-    save.image("./orange_simulation_n=100_20220916_scale=FALSE_sigma=1.Rdata")
+    save.image("./orange_simulation_n=100_20220917_scale=FALSE_sigma=1.Rdata")
   }
   skkm_res_list[[j]] = skkm_list
   skm_res_list[[j]] = skm_list
@@ -94,7 +109,7 @@ for (j in j:length(noise_p)) {
   time_list[[j]] = time_mat
   
   
-  save.image("./orange_simulation_n=100_20220916_scale=FALSE_sigma=1.Rdata")
+  save.image("./orange_simulation_n=100_20220917_scale=FALSE_sigma=1.Rdata")
 }
 
 sapply(ari_list, colMeans)
