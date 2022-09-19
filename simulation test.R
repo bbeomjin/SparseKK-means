@@ -58,7 +58,8 @@ for (j in j:length(noise_p)) {
     # Sparse kernel k-means algorithm
     skkm_t = system.time({
       tuned_skkm = tune.skkm(x = dat$x, nCluster = 2, s = NULL, ns = 10, nPerms = 25,
-                             nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE)
+                             nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
+                             nInit = 20)
     })
     skkm_clusters = tuned_skkm$optModel$opt_clusters
     ari_skkm = adj.rand.index(dat$y, skkm_clusters)
