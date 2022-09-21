@@ -1,5 +1,5 @@
 tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, weights = NULL, 
-                     kernel = "linear", kparam = 1, opt = TRUE, ...)
+                     kernel = "linear", kparam = 1, opt = TRUE, nCores = 1, ...)
 {
   out = list()
   call = match.call()
@@ -28,21 +28,33 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
     perm_list[[i]] = sapply(1:p, function(j) sample(x[, j]))
   }
     
-  org_bcd = numeric(ns)
-  for (j in 1:ns) {
+  org_bcd = unlist(mclapply(1:ns, FUN = function(j) {
     org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
                    kernel = kernel, kparam = kparam, opt = TRUE, ...)
-    org_bcd[j] = org_fit$max_bcd
-  }
+    return(org_fit$max_bcd)
+  }, mc.cores = nCores))
+ 
+  # org_bcd = numeric(ns)
+  # for (j in 1:ns) {
+  #   org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
+  #                  kernel = kernel, kparam = kparam, opt = TRUE, ...)
+  #   org_bcd[j] = org_fit$max_bcd
+  # }
     
   perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
   for (b in 1:nPerms) {
-    perm_bcd = numeric(ns)
-    for (j in 1:ns) {
+    perm_bcd = unlist(mclapply(1:ns, FUN = function(j) {
       perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
                       kernel = kernel, kparam = kparam, opt = TRUE, ...)
-      perm_bcd[j] = perm_fit$max_bcd
-    }
+      return(perm_fit$max_bcd)
+    }, mc.cores = nCores))
+    
+    # perm_bcd = numeric(ns)
+    # for (j in 1:ns) {
+    #   perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
+    #                   kernel = kernel, kparam = kparam, opt = TRUE, ...)
+    #   perm_bcd[j] = perm_fit$max_bcd
+    # }
     perm_bcd_list[b, ] = perm_bcd
   }
     
@@ -63,7 +75,7 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
 }
 
 skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
-               kernel = "linear", kparam = 1, opt = TRUE, nCores = 1, ...) 
+               kernel = "linear", kparam = 1, opt = TRUE, ...) 
 {
   out = list()
   call = match.call()
@@ -80,29 +92,20 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
   }
   
   res = vector("list", length = nStart)
-  
   seeds = seq(1, nStart, by = 1)
-  
-  res = mclapply(1:length(seeds), 
-           FUN = function(j) {
-              fit = skkm_core(x = x, clusters = nCluster, theta = NULL, s = s, weights = weights,
-                         kernel = kernel, kparam = kparam, ...)
-              return(fit)
-           }, mc.cores = nCores)
-
-  # for (j in 1:length(seeds)) {
-  #   # initialization
-  #   # set.seed(seeds[j])
-  #   # clusters0 = sample(1:nCluster, size = n, replace = TRUE)
-  #   # aa = make_anovaKernel(x, x, kernel = kernel, kparam = sigma)
-  #   # theta = rep(1 / sqrt(3), 3)
-  #   # K = combine_kernel(aa, theta)
-  #   # fit = kkmeans2(K, centers = nCluster)
-  #   # clusters0 = fit@.Data
+  for (j in 1:length(seeds)) {
+    # initialization
+    # set.seed(seeds[j])
+    # clusters0 = sample(1:nCluster, size = n, replace = TRUE)
+    # aa = make_anovaKernel(x, x, kernel = kernel, kparam = sigma)
+    # theta = rep(1 / sqrt(3), 3)
+    # K = combine_kernel(aa, theta)
+    # fit = kkmeans2(K, centers = nCluster)
+    # clusters0 = fit@.Data
     
-  #   res[[j]] = skkm_core(x = x, clusters = nCluster, theta = NULL, s = s, weights = weights,
-  #                        kernel = kernel, kparam = kparam, ...)
-  # }
+    res[[j]] = skkm_core(x = x, clusters = nCluster, theta = NULL, s = s, weights = weights,
+                         kernel = kernel, kparam = kparam, ...)
+  }
   if (opt) {
     bcd_list = sapply(res, function(x) {
       bcd = max(x$bcd)
