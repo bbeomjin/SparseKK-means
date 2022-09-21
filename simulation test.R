@@ -30,10 +30,10 @@ skkm_res_list = skm_res_list = kkm_res_list = list()
 # save time results
 # time_mat = matrix(NA, nrow = iter, ncol = 3)
 # colnames(time_mat) = c("skkm", "skm", "kkm")
-time_list = list()
+time_list = list() 
 
 i = 1
-j = 1
+j = 4
 
 for (j in j:length(noise_p)) {
   i = 1
@@ -107,7 +107,7 @@ for (j in j:length(noise_p)) {
     kkm_list[[i]] = kkm_res
     time_mat[i, "kkm"] = kkm_t[3]
     
-    save.image("./orange_simulation_n=100_20220917_scale=FALSE_sigma=1.Rdata")
+    save.image("./orange_simulation_n=100_20220919_scale=FALSE_sigma=1_p50.Rdata")
   }
   skkm_res_list[[j]] = skkm_list
   skm_res_list[[j]] = skm_list
@@ -117,9 +117,9 @@ for (j in j:length(noise_p)) {
   time_list[[j]] = time_mat
   
   
-  save.image("./orange_simulation_n=100_20220917_scale=FALSE_sigma=1.Rdata")
+  save.image("./orange_simulation_n=100_20220919_scale=FALSE_sigma=1_p50.Rdata")
 }
 
-sapply(ari_list, colMeans)
+sapply(ari_list, colMeans, na.rm = TRUE)
 
 
