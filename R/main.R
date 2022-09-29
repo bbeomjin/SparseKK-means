@@ -1,11 +1,18 @@
+#' tune.skkm
+#' 
+#' tuning skkm parameter
+#' @importFrom parallel mclapply
+#' @param x input data
+#' @return s tuning parameter
+#' @export 
 tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, weights = NULL, 
-                     kernel = "linear", kparam = 1, opt = TRUE, nCores = 1, ...)
+                     kernel = "linear", kparam = 1, search = "exact", opt = TRUE, nCores = 1, ...)
 {
   out = list()
   call = match.call()
   kernel = match.arg(kernel, c("linear", "gaussian", "spline-t",
                                "gaussian-2way", "spline-t-2way"))
-  
+  search = match.arg(search, c("exact", "binary"))
   if (!is.matrix(x)) {
     x = as.matrix(x)
   }
@@ -28,7 +35,7 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
     perm_list[[i]] = sapply(1:p, function(j) sample(x[, j]))
   }
     
-  org_bcd = unlist(mclapply(1:ns, FUN = function(j) {
+  org_bcd = unlist(parallel::mclapply(1:ns, FUN = function(j) {
     org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
                    kernel = kernel, kparam = kparam, opt = TRUE, ...)
     return(org_fit$max_bcd)
@@ -43,7 +50,7 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
     
   perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
   for (b in 1:nPerms) {
-    perm_bcd = unlist(mclapply(1:ns, FUN = function(j) {
+    perm_bcd = unlist(parallel::mclapply(1:ns, FUN = function(j) {
       perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
                       kernel = kernel, kparam = kparam, opt = TRUE, ...)
       return(perm_fit$max_bcd)
@@ -74,14 +81,20 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
   return(out)
 }
 
+#' skkm
+#' 
+#' fit skkm 
+#' @param x input data
+#' @return out list of clusters
+#' @export 
 skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
-               kernel = "linear", kparam = 1, opt = TRUE, ...) 
+               kernel = "linear", kparam = 1, search = "exact", opt = TRUE, ...) 
 {
   out = list()
   call = match.call()
   kernel = match.arg(kernel, c("linear", "gaussian", "spline-t",
                                "gaussian-2way", "spline-t-2way"))
-  
+  search = match.arg(search, c("exact", "binary"))
   x = as.matrix(x)
   n = nrow(x)
   # p = ncol(x)
@@ -104,7 +117,7 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
     # clusters0 = fit@.Data
     
     res[[j]] = skkm_core(x = x, clusters = nCluster, theta = NULL, s = s, weights = weights,
-                         kernel = kernel, kparam = kparam, ...)
+                         kernel = kernel, kparam = kparam, search = search, ...)
   }
   if (opt) {
     bcd_list = sapply(res, function(x) {
@@ -126,7 +139,7 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
 }
 
 skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weights = NULL,
-               kernel = "linear", kparam = 1, maxiter = 100, eps = 1e-5) 
+               kernel = "linear", kparam = 1, search = "exact", maxiter = 100, eps = 1e-8) 
 {
   call = match.call()
   n = nrow(x)
@@ -150,9 +163,9 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     init_clusters_list = vector("list", nInit)
     for (i in 1:nInit) {
       clusters0 = sample(1:nCluster, size = n, replace = TRUE)
-      init_clusters_list[[i]] = clusters0
       clusters = updateCs(anovaKernel = anovaKernel, theta = theta0, 
                           clusters = clusters0, weights = weights)$clusters
+      init_clusters_list[[i]] = clusters
       wcd = GetWCD(anovaKernel, clusters = clusters, weights = weights)
       init_wcd_vec[i] = sum(theta0 * wcd)
     }
@@ -167,9 +180,7 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     
     # Update clusters
     clusters = updateCs(anovaKernel = anovaKernel, theta = theta0, 
-                        clusters = clusters0, weights = weights)$clusters
-    
-    
+                        clusters = clusters0, weights = weights)$clusters  
     # plot(dat$x[, 1:2], col = clusters)
     
     # Update theta
@@ -177,7 +188,15 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     td = GetWCD(anovaKernel, rep(1, length(clusters)), weights = weights)
     bcd = td - wcd
     
-    delta = BinarySearch(coefs = bcd, s = s)
+    if (search == "exact") {
+      terror = try({delta = ExactSearch(coefs = bcd, s = s)}, silent = TRUE)
+      if (inherits(terror, "try-error")) {
+        delta = BinarySearch(coefs = bcd, s = s)  
+      }  
+    } else {
+      delta = BinarySearch(coefs = bcd, s = s)
+    }
+    
     
     theta_tmp = soft_threshold(bcd, delta = delta)
     theta = normalization(theta_tmp)
