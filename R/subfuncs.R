@@ -409,10 +409,11 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
       wcd[j] = GetWCD(Kmat, clusters = res[[j]]@.Data, weights = weights)  
     }
   }
+  optInd = which.min(wcd)
   if (opt) {
-    out$optRes = res[[which.min(wcd)]]
+    out$optRes = res[[optInd]]
     out$optClusters = out$optRes@.Data
-    out$minWcd = wcd[opt_ind]
+    out$minWcd = wcd[optInd]
   }
   out$wcd = wcd
   out$res = res
