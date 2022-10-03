@@ -14,7 +14,7 @@ tune.kkmeans = function(x, nCluster, nPerms = 20, nStart = 10, weights = NULL,
   }
 
   org_bcd = unlist(parallel::mclapply(1:length(kparam), FUN = function(j) {
-    org_fit = kkmeans(x, nCluster = nCluster, nStart = nStart, weights = weights,
+    org_fit = kkmeans(x = x, nCluster = nCluster, nStart = nStart, weights = weights,
                       kernel = kernel, kparam = kparam[j], opt = TRUE, ...)
     return(org_fit$maxBcd)
   }, mc.cores = nCores))
@@ -38,7 +38,7 @@ tune.kkmeans = function(x, nCluster, nPerms = 20, nStart = 10, weights = NULL,
   
   if (opt) {
     opt_fit = kkmeans(x = x, nCluster = nCluster, nStart = nStart, weights = weights,
-                  kernel = kernel, kparam = out$opt_kparam, opt = TRUE, ...)  
+                      kernel = kernel, kparam = out$opt_kparam, opt = TRUE, ...)  
     out$optModel = opt_fit
   }
   out$call = call

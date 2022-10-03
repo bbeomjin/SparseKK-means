@@ -38,17 +38,10 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
   }
     
   org_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
-    org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
+    org_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
                    kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
     return(org_fit$maxBcd)
   }, mc.cores = nCores))
- 
-  # org_bcd = numeric(ns)
-  # for (j in 1:ns) {
-  #   org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
-  #                  kernel = kernel, kparam = kparam, opt = TRUE, ...)
-  #   org_bcd[j] = org_fit$maxBcd
-  # }
     
   perm_bcd_list = matrix(0, nrow = nPerms, ncol = nrow(params))
   for (b in 1:nPerms) {
@@ -58,12 +51,6 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
       return(perm_fit$maxBcd)
     }, mc.cores = nCores))
     
-    # perm_bcd = numeric(ns)
-    # for (j in 1:ns) {
-    #   perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
-    #                   kernel = kernel, kparam = kparam, opt = TRUE, ...)
-    #   perm_bcd[j] = perm_fit$maxBcd
-    # }
     perm_bcd_list[b, ] = perm_bcd
   }
     
@@ -127,15 +114,15 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
       bcd = max(x$bcd)
     })
     
-    opt_ind = which(bcd_list == max(bcd_list))
-    if (length(opt_ind) > 1) {
+    optInd = which(bcd_list == max(bcd_list))
+    if (length(optInd) > 1) {
       warning("")
-      opt_ind = opt_ind[1]
+      optInd = optInd[1]
     }
     
-    out$optClusters = res[[opt_ind]]$clusters
-    out$optTheta = res[[opt_ind]]$theta
-    out$maxBcd = bcd_list[opt_ind]
+    out$optClusters = res[[optInd]]$clusters
+    out$optTheta = res[[optInd]]$theta
+    out$maxBcd = bcd_list[optInd]
   }
   out$res = res
   return(out)
