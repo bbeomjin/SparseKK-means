@@ -366,22 +366,57 @@ ExactSearch = function(coefs, s)
   return(min(lambda_vec, na.rm = TRUE))
 }
 
-# BinarySearch <- function(argu,sumabs){
-#   if(l2n(argu)==0 || sum(abs(argu/l2n(argu)))<=sumabs) return(0)
-#   lam1 <- 0
-#   lam2 <- max(abs(argu))-1e-5
-#   iter <- 1
-#   while(iter<=15 && (lam2-lam1)>(1e-4)){
-#     su <- soft(argu,(lam1+lam2)/2)
-#     if(sum(abs(su/l2n(su)))<sumabs){
-#       lam2 <- (lam1+lam2)/2
-#     } else {
-#       lam1 <- (lam1+lam2)/2
-#     }
-#     iter <- iter+1
-#   }
-#   return((lam1+lam2)/2)
-# }
 
+kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
+                   kernel = "linear", kparam = 1, opt = TRUE, ...) 
+{
+  out = list()
+  call = match.call()
+  kernel = match.arg(kernel, c("linear", "gaussian"))
+  kernel = switch(kernel, 
+                  "linear" = "vanilladot",
+                  "gaussian" = "rbfdot")
+  
+  if (kernel == "linear") {
+    kernel_fun = kernlab::vanilladot()
+  } else if (kernel == "rbfdot") {
+    kernel_fun = kernlab::rbfdot(sigma = kparam)
+  }
+
+  x = as.matrix(x)
+  n = nrow(x)
+  # p = ncol(x)
+  
+  if (is.null(weights)) {
+    weights = rep(1, n)
+    # attr(weights, "type") = "auto"
+  }
+  
+  res = vector("list", length = nStart)
+  wcd = numeric(length(nStart))
+  seeds = seq(1, nStart, by = 1)
+  for (j in 1:length(seeds)) {
+    Kmat = list()
+    try_error = try({
+      res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
+                         kernel = kernel, kpar = list(sigma = kparam), ...)
+    })
+    if (inherits(try_error, "try-error")) {
+      wcd[j] = Inf
+    } else {
+      Kmat$K = list(kernlab::kernelMatrix(kernel_fun, x, x))
+      Kmat$numK = 1
+      wcd[j] = GetWCD(Kmat, clusters = res[[j]]@.Data, weights = weights)  
+    }
+  }
+  if (opt) {
+    out$optRes = res[[which.min(wcd)]]
+    out$optClusters = out$optRes@.Data
+    out$minWcd = wcd[opt_ind]
+  }
+  out$wcd = wcd
+  out$res = res
+  return(out)
+}
 
 
