@@ -180,8 +180,12 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     bcd = td - wcd
     
     if (search == "exact") {
-      terror = try({suppressWarnings({delta = ExactSearch(coefs = bcd, s = s)})}, silent = TRUE)
-      if (inherits(terror, "try-error") | (delta == Inf)) {
+      terror = try({
+        suppressWarnings({delta = ExactSearch(coefs = bcd, s = s)})
+      }, silent = TRUE)
+      if (inherits(terror, "try-error")) {
+        delta = BinarySearch(coefs = bcd, s = s)  
+      } else if (abs(delta) == Inf) {
         delta = BinarySearch(coefs = bcd, s = s)  
       }  
     } else {

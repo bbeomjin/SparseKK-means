@@ -37,20 +37,22 @@ skkm_res_list = skm_res_list = kkm_res_list = list()
 time_list = list() 
 
 i = 1
-j = 1
+j = 3
 
 ##### just test ########
-dat = generateSmiley(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j], noise_sd = 2)
+dat = generateTaegeuk(n = n, seed = i, noise_p = noise_p[j])
+nclusters = 2
+# dat = generateSmiley(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j], noise_sd = 2)
 x = dat$x
-nCluster = 3
+nCluster = nclusters
 s = NULL
-ns = 10
+ns = 20
 nPerms = 25
 nStart = 1
 kernel = "gaussian-2way"
-kparam = c(0.25, 0.5, 0.75, 1)
+sigma = c(0.25, 0.5, 0.75, 1)
 opt = TRUE
-nInit = 10
+nInit = 20
 skkm_t = system.time({
       tuned_skkm = tune.skkm(x = dat$x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
                              nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
