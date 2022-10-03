@@ -344,7 +344,6 @@ BinarySearch = function(coefs, s)
   return((lamb1 + lamb2) / 2)
 }
 
-
 #
 ExactSearch = function(coefs, s)
 {
@@ -364,60 +363,6 @@ ExactSearch = function(coefs, s)
     }
   }
   return(min(lambda_vec, na.rm = TRUE))
-}
-
-
-kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
-                   kernel = "linear", kparam = 1, opt = TRUE, ...) 
-{
-  out = list()
-  call = match.call()
-  kernel = match.arg(kernel, c("linear", "gaussian"))
-  kernel = switch(kernel, 
-                  "linear" = "vanilladot",
-                  "gaussian" = "rbfdot")
-  
-  if (kernel == "linear") {
-    kernel_fun = kernlab::vanilladot()
-  } else if (kernel == "rbfdot") {
-    kernel_fun = kernlab::rbfdot(sigma = kparam)
-  }
-
-  x = as.matrix(x)
-  n = nrow(x)
-  # p = ncol(x)
-  
-  if (is.null(weights)) {
-    weights = rep(1, n)
-    # attr(weights, "type") = "auto"
-  }
-  
-  res = vector("list", length = nStart)
-  wcd = numeric(length(nStart))
-  seeds = seq(1, nStart, by = 1)
-  for (j in 1:length(seeds)) {
-    Kmat = list()
-    try_error = try({
-      res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
-                         kernel = kernel, kpar = list(sigma = kparam), ...)
-    })
-    if (inherits(try_error, "try-error")) {
-      wcd[j] = Inf
-    } else {
-      Kmat$K = list(kernlab::kernelMatrix(kernel_fun, x, x))
-      Kmat$numK = 1
-      wcd[j] = GetWCD(Kmat, clusters = res[[j]]@.Data, weights = weights)  
-    }
-  }
-  optInd = which.min(wcd)
-  if (opt) {
-    out$optRes = res[[optInd]]
-    out$optClusters = out$optRes@.Data
-    out$minWcd = wcd[optInd]
-  }
-  out$wcd = wcd
-  out$res = res
-  return(out)
 }
 
 
