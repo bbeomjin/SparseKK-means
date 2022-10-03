@@ -6,11 +6,15 @@ setwd(r"(C:\Users\user\GitHub\SparseKK-means)")
 
 # remove.packages("skkm")
 # devtools:::install_github("bbeomjin/skkm")
+source("./R/main.R")
+source("./R/subfuncs.R")
+source("./R/simfuncs.R")
+
 require(sparcl)
 require(kernlab)
 require(caret)
 require(fossil)
-require(skkm)
+# require(skkm)
 
 n = 100
 p = 2
@@ -33,7 +37,33 @@ skkm_res_list = skm_res_list = kkm_res_list = list()
 time_list = list() 
 
 i = 1
-j = 2
+j = 1
+
+##### just test ########
+dat = generateSmiley(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j], noise_sd = 2)
+x = dat$x
+nCluster = 3
+s = NULL
+ns = 10
+nPerms = 25
+nStart = 1
+kernel = "gaussian-2way"
+kparam = c(0.25, 0.5, 0.75, 1)
+opt = TRUE
+nInit = 10
+skkm_t = system.time({
+      tuned_skkm = tune.skkm(x = dat$x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
+                             nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
+                             nInit = 20)
+    })
+
+
+
+##########################
+
+
+
+
 
 for (j in j:length(noise_p)) {
   i = 1

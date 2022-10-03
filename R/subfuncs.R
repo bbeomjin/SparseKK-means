@@ -354,7 +354,9 @@ ExactSearch = function(coefs, s)
   for (i in 1:p) {
     sub_coefs = coefs[1:i]
     ft = sum(sub_coefs) / i
-    st = (1 / sqrt(i)) * sqrt(sum(sub_coefs)^2 / i - (sum(sub_coefs)^2 - sum(sub_coefs^2) * s^2) / (i - s^2))
+    st_tmp = sum(sub_coefs)^2 / i - (sum(sub_coefs)^2 - sum(sub_coefs^2) * s^2) / (i - s^2)
+    if (abs(st_tmp) < 1e-12) {st_tmp = 0}
+    st = (1 / sqrt(i)) * sqrt(st_tmp)
     lambda_vec[i] = min(ft + st, ft - st)
   }
   return(min(lambda_vec, na.rm = TRUE))

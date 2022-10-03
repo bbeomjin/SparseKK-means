@@ -30,14 +30,16 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
     s = sort(s)
   }
   
+  params = expand.grid(s = s, kparam = kparam)
+
   perm_list = vector("list", nPerms)
   for (i in 1:nPerms) {
     perm_list[[i]] = sapply(1:p, function(j) sample(x[, j]))
   }
     
-  org_bcd = unlist(parallel::mclapply(1:ns, FUN = function(j) {
-    org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
-                   kernel = kernel, kparam = kparam, opt = TRUE, ...)
+  org_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
+    org_fit = skkm(x, nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
+                   kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
     return(org_fit$max_bcd)
   }, mc.cores = nCores))
  
@@ -51,8 +53,8 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
   perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
   for (b in 1:nPerms) {
     perm_bcd = unlist(parallel::mclapply(1:ns, FUN = function(j) {
-      perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = s[j], weights = weights,
-                      kernel = kernel, kparam = kparam, opt = TRUE, ...)
+      perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
+                      kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
       return(perm_fit$max_bcd)
     }, mc.cores = nCores))
     
@@ -69,11 +71,12 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
   out$perm_bcd = perm_bcd_list
   out$gaps = log(org_bcd) - colMeans(log(perm_bcd_list))
   out$opt_ind = min(which(out$gaps == max(out$gaps)))
-  out$opt_s = s[out$opt_ind]
+  out$opt_s = params[out$opt_ind, "s"]
+  out$opt_kparam = params[out$opt_ind, "kparam"]
     
   if (opt) {
     opt_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = out$opt_s, weights = weights,
-                  kernel = kernel, kparam = kparam, opt = TRUE, ...)  
+                  kernel = kernel, kparam = out$opt_kparam, opt = TRUE, ...)  
     out$optModel = opt_fit
   }
   
@@ -190,8 +193,8 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     bcd = td - wcd
     
     if (search == "exact") {
-      terror = try({delta = ExactSearch(coefs = bcd, s = s)}, silent = TRUE)
-      if (inherits(terror, "try-error")) {
+      terror = try({suppressWarnings({delta = ExactSearch(coefs = bcd, s = s)})}, silent = TRUE)
+      if (inherits(terror, "try-error") | (delta == Inf)) {
         delta = BinarySearch(coefs = bcd, s = s)  
       }  
     } else {
@@ -214,7 +217,7 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     bcd_vec[iter] = sum(theta * bcd)
     
     # print((sum(abs(theta - theta0)) / sum(theta0)))
-    if ((sum(abs(theta - theta0)) / sum(theta0)) < eps) {
+    if ((sum(abs(theta - theta0)) / (sum(theta0) + 1e-12)) < eps) {
       break
     } else {
       theta0 = theta
