@@ -1,9 +1,10 @@
 #' @export 
-generateSmiley = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
+generateSmiley = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
 {
   set.seed(seed)
   nclass = 3
   each_n = floor(n / nclass)
+  n = each_n * nclass
   sigma = 0.1
   x1 = matrix(rnorm(each_n * p, c(-1, -0.5), 0.2),
             nrow = each_n, ncol = p, byrow = TRUE)
@@ -13,9 +14,9 @@ generateSmiley = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
   x3 = cbind(3 * cos(seq_x) + rnorm(each_n) * sigma, 2 * sin(seq_x) + 0.0 + rnorm(each_n) * sigma)
 
   X = rbind(x1, x2, x3)
-
+  y = rep(c(1, 2, 3), each = each_n)
   if (with_noise) {
-    noise_dat = matrix(rnorm(n * noise_p, sd = 2), n, noise_p)
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
     X = cbind(X, noise_dat)
   }
   return(list(x = X, y = y))
@@ -23,7 +24,7 @@ generateSmiley = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
 
 
 #' @export 
-generateTaegeuk = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
+generateTaegeuk = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
 {
   set.seed(seed)
   nclass = numeric(2)
@@ -50,7 +51,7 @@ generateTaegeuk = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
   }
 
   if (with_noise) {
-    noise_dat = matrix(rnorm(n * noise_p, sd = 2), n, noise_p)
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
     X = cbind(X, noise_dat)
   }
   return(list(x = X, y = y))
@@ -58,7 +59,7 @@ generateTaegeuk = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
 
 
 #' @export 
-generateMultiorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
+generateMultiorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
 {
   set.seed(seed)
   nclass = numeric(3)
@@ -90,14 +91,14 @@ generateMultiorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 
     }
   }
   if (with_noise) {
-    noise_dat = matrix(rnorm(n * noise_p, sd = 2), n, noise_p)
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
     X = cbind(X, noise_dat)
   }
   return(list(x = X, y = y))
 }
 
 #' @export 
-generateTwoorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
+generateTwoorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
 {
   set.seed(seed)
   nclass = numeric(2)
@@ -122,7 +123,7 @@ generateTwoorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1)
     }
   }
   if (with_noise) {
-    noise_dat = matrix(rnorm(n * noise_p, sd = 2), n, noise_p)
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
     X = cbind(X, noise_dat)
   }
   return(list(x = X, y = y))

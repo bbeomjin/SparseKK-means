@@ -4,13 +4,13 @@ gc()
 # setwd(r"(C:\Users\Beom\GitHub\SparseKK-means)")
 setwd(r"(C:\Users\user\GitHub\SparseKK-means)")
 
+# remove.packages("skkm")
+# devtools:::install_github("bbeomjin/skkm")
 require(sparcl)
 require(kernlab)
 require(caret)
 require(fossil)
-source(r"(.\R\subfuncs.R)")
-source(r"(.\R\main.R)")
-source(r"(.\R\simfuncs.R)")
+require(skkm)
 
 n = 100
 p = 2
@@ -33,7 +33,7 @@ skkm_res_list = skm_res_list = kkm_res_list = list()
 time_list = list() 
 
 i = 1
-j = 4
+j = 2
 
 for (j in j:length(noise_p)) {
   i = 1
@@ -47,7 +47,8 @@ for (j in j:length(noise_p)) {
   for (i in i:iter) {
     cat(j, "th setting", i, "th iteration \n")
     # dat = generateMultiorange(n = n, p = p, seed = 2, with_noise = TRUE, noise_p = 5)
-    dat = generateTwoorange(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j])
+    # dat = generateTwoorange(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j])
+    dat = generateSmiley(n = n, p = p, seed = i, with_noise = TRUE, noise_p = noise_p[j], noise_sd = 2)
     # dat = generateMultiMoon(each_n = n, sigma = 0.5, seed = 1, noise_p = 5, noise_sd = 3)
     # dat = generateTwoMoon(each_n = n, sigma = 0.5, seed = 1, noise_p = 5, noise_sd = 3)
     
@@ -57,7 +58,7 @@ for (j in j:length(noise_p)) {
     
     # Sparse kernel k-means algorithm
     skkm_t = system.time({
-      tuned_skkm = tune.skkm(x = dat$x, nCluster = 2, s = NULL, ns = 10, nPerms = 25,
+      tuned_skkm = tune.skkm(x = dat$x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
                              nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
                              nInit = 20)
     })
@@ -66,9 +67,11 @@ for (j in j:length(noise_p)) {
     ARI_mat[i, "skkm"] = ari_skkm
     skkm_list[[i]] = tuned_skkm
     time_mat[i, "skkm"] = skkm_t[3]
-    # plot(dat$x[, 1:2], col = skkm_clusters,
-    #      pch = 16, cex = 1.5,
-    #      xlab = "x1", ylab = "y1", main = "Proposed method")
+    # tuned_skkm$opt_s
+    # tuned_skkm$optModel$opt_theta
+    plot(dat$x[, 1:2], col = skkm_clusters,
+          pch = 16, cex = 1.5,
+          xlab = "x1", ylab = "y1", main = "Proposed method")
     
     
     # Sparse k-means algorithm

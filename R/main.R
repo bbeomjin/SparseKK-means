@@ -141,6 +141,7 @@ skkm = function(x, nCluster, nStart = 10, s = 1.5, weights = NULL,
 skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weights = NULL,
                kernel = "linear", kparam = 1, search = "exact", maxiter = 100, eps = 1e-8) 
 {
+  out = list()
   call = match.call()
   n = nrow(x)
   # p = ncol(x)
@@ -220,6 +221,13 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
       clusters0 = clusters
     }
   }
-  return(list(clusters = clusters, theta = theta, weights = weights, 
-              iteration = iter, td = td_vec, wcd = wcd_vec, bcd = bcd_vec, init_clusters = init_clusters))
+  out$clusters = clusters
+  out$theta = theta
+  out$weights = weights
+  out$td = td_vec
+  out$wcd = wcd_vec
+  out$bcd = bcd_vec
+  out$init_clusters = init_clusters
+  out$iteration = iter
+  return(out)
 }
