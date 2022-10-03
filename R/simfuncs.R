@@ -1,4 +1,30 @@
 #' @export 
+generateThreeNormal = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 1)
+{
+  set.seed(seed)
+  nclass = 3
+  each_n = floor(n / nclass)
+  n = each_n * nclass
+  x1 = matrix(rnorm(each_n * p, c(0, -2), 1),
+            nrow = each_n, ncol = p, byrow = TRUE)
+  x2 = matrix(rnorm(each_n * p, c(2, 2), 1),
+              nrow = each_n, ncol = p, byrow = TRUE)
+  x3 = matrix(rnorm(each_n * p, c(-2, 2), 1),
+              nrow = each_n, ncol = p, byrow = TRUE)
+
+  X = rbind(x1, x2, x3)
+  y = rep(c(1, 2, 3), each = each_n)
+  plot(X, col = factor(y))
+  if (with_noise) {
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
+    X = cbind(X, noise_dat)
+  }
+  return(list(x = X, y = y))
+}
+
+
+
+#' @export 
 generateSmiley = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
 {
   set.seed(seed)
