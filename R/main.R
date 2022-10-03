@@ -73,7 +73,7 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
 
 #' skkm
 #' 
-#' fit skkm 
+#' fitting skkm 
 #' @param x input data
 #' @return out list of clusters
 #' @export 

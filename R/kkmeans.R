@@ -1,3 +1,11 @@
+#' tune.skkm
+#' 
+#' tuning kkmeans parameter
+#' @importFrom parallel mclapply
+#' @importFrom kernlab kkmeans
+#' @param x input data
+#' @return out results of kkmeans
+#' @export 
 tune.kkmeans = function(x, nCluster, nPerms = 20, nStart = 10, weights = NULL,
                         kernel = "linear", kparam = 1, opt = TRUE, nCores = 1, ...)
 {
@@ -45,7 +53,13 @@ tune.kkmeans = function(x, nCluster, nPerms = 20, nStart = 10, weights = NULL,
   return(out)
 }
 
-
+#' kkmeans
+#' 
+#' fitting kkmeans 
+#' @importFrom kernlab kkmeans
+#' @param x input data
+#' @return out list of clusters
+#' @export 
 kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
                    kernel = "linear", kparam = 1, opt = TRUE, ...) 
 {
