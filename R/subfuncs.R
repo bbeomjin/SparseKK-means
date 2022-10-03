@@ -355,9 +355,13 @@ ExactSearch = function(coefs, s)
     sub_coefs = coefs[1:i]
     ft = sum(sub_coefs) / i
     st_tmp = sum(sub_coefs)^2 / i - (sum(sub_coefs)^2 - sum(sub_coefs^2) * s^2) / (i - s^2)
-    if (abs(st_tmp) < 1e-12) {st_tmp = 0}
-    st = (1 / sqrt(i)) * sqrt(st_tmp)
-    lambda_vec[i] = min(ft + st, ft - st)
+    if (is.nan(st_tmp)) {
+      lambda_vec[i] = Inf
+    } else {
+      if (abs(st_tmp) < 1e-12) {st_tmp = 0}
+      st = (1 / sqrt(i)) * sqrt(st_tmp)
+      lambda_vec[i] = min(ft + st, ft - st)
+    }
   }
   return(min(lambda_vec, na.rm = TRUE))
 }
