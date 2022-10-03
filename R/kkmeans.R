@@ -34,7 +34,7 @@ tune.kkmeans = function(x, nCluster, nPerms = 20, nStart = 10, weights = NULL,
   out$permBcd = perm_bcd_list
   out$gaps = log(org_bcd) - colMeans(log(perm_bcd_list))
   out$optInd = min(which(out$gaps == max(out$gaps)))
-  out$opt_kparam = kparam[optInd]
+  out$opt_kparam = kparam[out$optInd]
   
   if (opt) {
     opt_fit = kkmeans(x = x, nCluster = nCluster, nStart = nStart, weights = weights,
