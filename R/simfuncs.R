@@ -14,7 +14,7 @@ generateThreeNormal = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 
 
   X = rbind(x1, x2, x3)
   y = rep(c(1, 2, 3), each = each_n)
-  plot(X, col = factor(y))
+  
   if (with_noise) {
     noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
     X = cbind(X, noise_dat)
