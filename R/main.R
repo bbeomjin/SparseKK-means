@@ -194,7 +194,11 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
     
     
     theta_tmp = soft_threshold(bcd, delta = delta)
-    theta = normalization(theta_tmp)
+    if (sum(theta_tmp) == 0) {
+      theta = theta_tmp
+    } else {
+      theta = normalization(theta_tmp)
+    }
     
     # td_new = GetWCD(anovaKernel, rep(1, length(clusters)), weights = weights)
     # wcd_new = GetWCD(anovaKernel, clusters = clusters, weights = weights)
