@@ -50,9 +50,9 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
   #   org_bcd[j] = org_fit$max_bcd
   # }
     
-  perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
+  perm_bcd_list = matrix(0, nrow = nPerms, ncol = nrow(params))
   for (b in 1:nPerms) {
-    perm_bcd = unlist(parallel::mclapply(1:ns, FUN = function(j) {
+    perm_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
       perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
                       kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
       return(perm_fit$max_bcd)
