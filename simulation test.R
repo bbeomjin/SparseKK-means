@@ -50,7 +50,7 @@ ns = 20
 nPerms = 25
 nStart = 1
 kernel = "gaussian-2way"
-sigma = c(0.25, 0.5, 0.75, 1)
+kparam = c(0.25, 0.5, 0.75, 1)
 opt = TRUE
 nInit = 20
 weights = NULL
@@ -58,6 +58,7 @@ nCores = 1
 p = ncol(dat$x)
 nv = p + p * (p - 1) / 2
 s = sqrt(nv)
+search = "exact"
 skkm_t = system.time({
       tuned_skkm = tune.skkm(x = x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
                              nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
