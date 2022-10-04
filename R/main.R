@@ -184,21 +184,14 @@ skkm_core = function(x, clusters = NULL, nInit = 20, theta = NULL, s = 1.5, weig
         suppressWarnings({delta = ExactSearch(coefs = bcd, s = s)})
       }, silent = TRUE)
       if (inherits(terror, "try-error")) {
-        delta = BinarySearch(coefs = bcd, s = s)  
-      } else if (abs(delta) == Inf) {
-        delta = BinarySearch(coefs = bcd, s = s)  
-      }  
+        delta = BinarySearch(coefs = bcd, s = s) 
+      }   
     } else {
       delta = BinarySearch(coefs = bcd, s = s)
     }
     
-    
     theta_tmp = soft_threshold(bcd, delta = delta)
-    if (sum(theta_tmp) == 0) {
-      theta = theta_tmp
-    } else {
-      theta = normalization(theta_tmp)
-    }
+    theta = normalization(theta_tmp)
     
     # td_new = GetWCD(anovaKernel, rep(1, length(clusters)), weights = weights)
     # wcd_new = GetWCD(anovaKernel, clusters = clusters, weights = weights)

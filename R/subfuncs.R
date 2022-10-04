@@ -345,24 +345,45 @@ BinarySearch = function(coefs, s)
 }
 
 #
+# ExactSearch = function(coefs, s)
+# {
+#   p = length(coefs)
+#   ind_seq = (1:p)[1:p != s^2]
+#   sorted_coefs = sort(coefs, decreasing = TRUE)
+#   lambda_vec = numeric(p)
+#   for (i in 1:p) {
+#     sub_coefs = coefs[1:i]
+#     ft = sum(sub_coefs) / i
+#     st_tmp = sum(sub_coefs)^2 / i - (sum(sub_coefs)^2 - sum(sub_coefs^2) * s^2) / (i - s^2)
+#     st_tmp[abs(st_tmp) < 1e-12] = 0
+#     if (is.nan(st_tmp) | (abs(st_tmp) == Inf) | (st_tmp < 0)) {
+#       lambda_vec[i] = Inf
+#     } else {
+#       st = (1 / sqrt(i)) * sqrt(st_tmp)
+#       lambda_vec[i] = min(ft + st, ft - st)
+#     }
+#   }
+#   return(min(lambda_vec, na.rm = TRUE))
+# }
+
+
 ExactSearch = function(coefs, s)
 {
+  if((sum(coefs^2) == 0) | (sum(abs(normalization(coefs))) <= s)) return(0)
   p = length(coefs)
+  ind_seq = (1:p)[1:p != s^2]
   sorted_coefs = sort(coefs, decreasing = TRUE)
-  lambda_vec = numeric(p)
-  for (i in 1:p) {
+  lambda_vec = rep(NA, p)
+  for (i in ind_seq) {
     sub_coefs = coefs[1:i]
-    ft = sum(sub_coefs) / i
-    st_tmp = sum(sub_coefs)^2 / i - (sum(sub_coefs)^2 - sum(sub_coefs^2) * s^2) / (i - s^2)
-    st_tmp[abs(st_tmp) < 1e-12] = 0
-    if (is.nan(st_tmp) | (abs(st_tmp) == Inf) | (st_tmp < 0)) {
-      lambda_vec[i] = Inf
-    } else {
-      st = (1 / sqrt(i)) * sqrt(st_tmp)
-      lambda_vec[i] = min(ft + st, ft - st)
-    }
+    coefs_sum = sum(sub_coefs)
+    squared_sum = sum(sub_coefs^2)
+    ft = coefs_sum / i
+    st_tmp = coefs_sum^2 / i - (coefs_sum^2 - squared_sum * s^2) / (i - s^2)
+    if (st_tmp < 0) {warning("st less than 0"); next}
+    st = (1 / sqrt(i)) * sqrt(st_tmp)
+    lambda_vec[i] = min(ft + st, ft - st)
   }
   return(min(lambda_vec, na.rm = TRUE))
 }
-
 

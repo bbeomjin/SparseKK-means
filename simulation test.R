@@ -59,7 +59,7 @@ p = ncol(dat$x)
 nv = p + p * (p - 1) / 2
 s = sqrt(nv)
 skkm_t = system.time({
-      tuned_skkm = tune.skkm(x = dat$x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
+      tuned_skkm = tune.skkm(x = x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
                              nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
                              nInit = 20)
     })
