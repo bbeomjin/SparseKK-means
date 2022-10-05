@@ -83,6 +83,39 @@ generateTaegeuk = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, n
   return(list(x = X, y = y))
 }
 
+#' @export 
+generateTaegeuk2 = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
+{
+  set.seed(seed)
+  nclass = numeric(2)
+  each_n = floor(n / 2)
+  n = each_n * 2
+  X = matrix(nrow = n, ncol = p)
+  y = numeric(n)
+  k = 1
+
+  while (k <= n) {
+    x = rnorm(p, sd = 2)
+    sx = sum(x^2)
+    if (sx < 4 & x[2] > (2 / 3 * sin(x[1] * 2 / 3 * pi)) + 5 / 12) {
+      nclass[1] = nclass[1] + 1
+      y[k] = 1
+      X[k, ] = x
+      k = k + 1
+    } else if (sx < 4 & x[2] < (2 / 3 * sin(x[1] * 2 / 3 * pi)) - 5 / 12) {
+      nclass[2] = nclass[2] + 1
+      y[k] = 2
+      X[k, ] = x
+      k = k + 1
+    }
+  }
+
+  if (with_noise) {
+    noise_dat = matrix(rnorm(n * noise_p, sd = noise_sd), n, noise_p)
+    X = cbind(X, noise_dat)
+  }
+  return(list(x = X, y = y))
+}
 
 #' @export 
 generateMultiorange = function(n, p = 2, seed = 1, with_noise = TRUE, noise_p = 1, noise_sd = 2)
