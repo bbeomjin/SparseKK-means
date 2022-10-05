@@ -7,6 +7,7 @@ setwd(r"(C:\Users\user\GitHub\SparseKK-means)")
 # remove.packages("skkm")
 # devtools:::install_github("bbeomjin/skkm")
 source("./R/main.R")
+source("./R/kkmeans.R")
 source("./R/subfuncs.R")
 source("./R/simfuncs.R")
 
@@ -37,7 +38,7 @@ skkm_res_list = skm_res_list = kkm_res_list = list()
 time_list = list() 
 
 i = 1
-j = 3
+j = 1
 
 ##### just test ########
 dat = generateTaegeuk(n = n, seed = i, noise_p = noise_p[j])
@@ -69,8 +70,8 @@ skkm_t = system.time({
 
 ##########################
 
-
-
+tt = tune.kkmeans(x = x, nCluster = 2, nPerms = 25, nSpart = 20, kernel = "gaussian", kparam = c(0.5, 1))
+tt$optModel$optClusters
 
 
 for (j in j:length(noise_p)) {
