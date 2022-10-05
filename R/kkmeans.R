@@ -67,13 +67,13 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
   call = match.call()
   kernel = match.arg(kernel, c("linear", "gaussian"))
   
-  if (kernel == "linear") {
-    kernel_fun = kernlab::vanilladot()
-    kpar = list()
-  } else if (kernel == "gaussian") {
-    kernel_fun = kernlab::rbfdot(sigma = kparam)
-    kpar = list(sigma = kparam)
-  }
+  # if (kernel == "linear") {
+  #   kernel_fun = kernlab::vanilladot()
+  #   kpar = list()
+  # } else if (kernel == "gaussian") {
+  #   kernel_fun = kernlab::rbfdot(sigma = kparam)
+  #   kpar = list(sigma = kparam)
+  # }
 
   x = as.matrix(x)
   n = nrow(x)
@@ -83,7 +83,8 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
   }
   
   Kmat = list()
-  Kmat$K = list(kernlab::kernelMatrix(kernel_fun, x, x))
+  # Kmat$K = list(kernlab::kernelMatrix(kernel_fun, x, x))
+  Kmat$K = list(kernelMatrix(x, x, kernel = kernel, kparam = kparam))
   Kmat$numK = 1
   td = GetWCD(Kmat, clusters = rep(1, n), weights = weights)  
 
@@ -95,19 +96,23 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
     try_error = try({
       # res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
       #                            kernel = kernel, kpar = kpar, ...)
-      res[[j]] = kernlab::kkmeans(Kmat$K[[1]], centers = nCluster, ...)
+      # res[[j]] = kernlab::kkmeans(Kmat$K[[1]], centers = nCluster, ...)
+      clusters0 = sample(1:nCluster, size = n, replace = TRUE)
+      res[[j]] = updateCs(anovaKernel = Kmat, theta = 1, 
+                          clusters = clusters0, weights = weights)
     })
     if (inherits(try_error, "try-error")) {
       wcd[j] = Inf
     } else {
-      wcd[j] = GetWCD(Kmat, clusters = res[[j]]@.Data, weights = weights)  
+      # wcd[j] = GetWCD(Kmat, clusters = res[[j]]@.Data, weights = weights)  
+      wcd[j] = GetWCD(Kmat, clusters = res[[j]]$clusters, weights = weights)  
     }
   }
   bcd = td - wcd
   optInd = which.max(bcd)
   if (opt) {
     out$optRes = res[[optInd]]
-    out$optClusters = out$optRes@.Data
+    out$optClusters = out$optRes$clusters
     out$maxBcd = bcd[optInd]
   }
   out$td = td
