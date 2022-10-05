@@ -66,14 +66,11 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
   out = list()
   call = match.call()
   kernel = match.arg(kernel, c("linear", "gaussian"))
-  kernel = switch(kernel, 
-                  "linear" = "vanilladot",
-                  "gaussian" = "rbfdot")
   
   if (kernel == "linear") {
     kernel_fun = kernlab::vanilladot()
     kpar = list()
-  } else if (kernel == "rbfdot") {
+  } else if (kernel == "gaussian") {
     kernel_fun = kernlab::rbfdot(sigma = kparam)
     kpar = list(sigma = kparam)
   }
@@ -98,7 +95,7 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
     try_error = try({
       # res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
       #                            kernel = kernel, kpar = kpar, ...)
-      res[[j]] = kernlab::kkmeans(Kmat$K, centers = nCluster, ...)
+      res[[j]] = kernlab::kkmeans(Kmat$K[[1]], centers = nCluster, ...)
     })
     if (inherits(try_error, "try-error")) {
       wcd[j] = Inf
