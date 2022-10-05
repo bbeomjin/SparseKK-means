@@ -96,8 +96,9 @@ kkmeans = function(x, nCluster, nStart = 10, weights = NULL,
   for (j in 1:length(seeds)) {
     
     try_error = try({
-      res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
-                                 kernel = kernel, kpar = kpar, ...)
+      # res[[j]] = kernlab::kkmeans(x = x, centers = nCluster, 
+      #                            kernel = kernel, kpar = kpar, ...)
+      res[[j]] = kernlab::kkmeans(Kmat$K, centers = nCluster, ...)
     })
     if (inherits(try_error, "try-error")) {
       wcd[j] = Inf
