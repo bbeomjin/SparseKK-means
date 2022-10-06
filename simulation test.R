@@ -60,13 +60,52 @@ p = ncol(dat$x)
 nv = p + p * (p - 1) / 2
 s = sqrt(nv)
 search = "exact"
-skkm_t = system.time({
-      tuned_skkm = tune.skkm(x = x, nCluster = 3, s = NULL, ns = 10, nPerms = 25,
-                             nStart = 1, kernel = "gaussian-2way", kparam = sigma, opt = TRUE,
+
+sigmas = seq(0.1, 1, by = 0.1)
+# sigma = 1
+# sigma = 0.5
+# sigma = 0.25
+# sigma = 0.1
+
+ari = c()
+tttt = c()
+cccc = c()
+for (sig in sigmas) {
+  cat(sig)
+   skkm_t = system.time({
+      tuned_skkm = tune.skkm(x = x, nCluster = 2, s = NULL, ns = 10, nPerms = 25,
+                             nStart = 1, kernel = "gaussian-2way", kparam = sig, opt = TRUE,
                              nInit = 20)
     })
+   aaa = adj.rand.index(dat$y, tuned_skkm$optModel$optClusters)    
+   ari = append(ari, aaa)
+   anovaK = make_anovaKernel(x, x, kernel = "gaussian-2way", kparam = sig)
+   K = combine_kernel(anovaK, tuned_skkm$optModel$optTheta)
+   e = eigen(K, symmetric = TRUE)
+   e$values[e$values < 0] = 0
+   kk = diag(sqrt(e$values)) %*% e$vectors
+   ttt = 0
+   for (i in unique(tuned_skkm$optModel$optClusters)) {
+     Ksub = kk[tuned_skkm$optModel$optClusters == i, , drop = FALSE]
+     ttt = ttt + sum(rowSums((Ksub - rowMeans(Ksub))^2))
+   }
+  tttt = append(tttt, ttt) 
+  ccc = GetWCD(anovaK, clusters = tuned_skkm$optModel$optClusters, weights = rep(1, n))
+  cccc = append(cccc, sum(tuned_skkm$optModel$optTheta * ccc))
+}
 
 
+ari
+tttt
+which.min(tttt)
+
+adj.rand.index(dat$y, tuned_skkm$optModel$optClusters)
+
+aa = tune.kkmeans(x, 2, nPerms = 25, nStart = 20, kernel = "gaussian", kparam = sigmas)
+aa$gaps
+sigmas[which.max(aa$gaps)]
+
+# tuned_skkm$optModel$optTheta
 
 ##########################
 
