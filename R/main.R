@@ -30,67 +30,67 @@ tune.skkm = function(x, nCluster, nPerms = 20, s = NULL, ns = 100, nStart = 10, 
     s = sort(s)
   }
   
-  # params = expand.grid(s = s, kparam = kparam)
+  params = expand.grid(s = s, kparam = kparam)
 
   perm_list = vector("list", nPerms)
   for (i in 1:nPerms) {
     perm_list[[i]] = sapply(1:p, function(j) sample(x[, j]))
   }
     
-  # org_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
-  #   org_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
-  #                  kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
-  #   return(org_fit$maxBcd)
-  # }, mc.cores = nCores))
-  
-  org_bcd = unlist(parallel::mclapply(s, FUN = function(ss) {
-    org_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = ss, weights = weights,
-                   kernel = kernel, kparam = kparam, opt = TRUE, ...)
+  org_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
+    org_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
+                   kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
     return(org_fit$maxBcd)
   }, mc.cores = nCores))
+  
+  # org_bcd = unlist(parallel::mclapply(s, FUN = function(ss) {
+  #   org_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = ss, weights = weights,
+  #                  kernel = kernel, kparam = kparam, opt = TRUE, ...)
+  #   return(org_fit$maxBcd)
+  # }, mc.cores = nCores))
 
 
-  # perm_bcd_list = matrix(0, nrow = nPerms, ncol = nrow(params))
-  # for (b in 1:nPerms) {
-  #   perm_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
-  #     perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
-  #                     kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
-  #     return(perm_fit$maxBcd)
-  #   }, mc.cores = nCores))
-  #  
-  #   perm_bcd_list[b, ] = perm_bcd
-  # }
-
-  perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
+  perm_bcd_list = matrix(0, nrow = nPerms, ncol = nrow(params))
   for (b in 1:nPerms) {
-    perm_bcd = unlist(parallel::mclapply(s, FUN = function(ss) {
-      perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = ss, weights = weights,
-                      kernel = kernel, kparam = kparam, opt = TRUE, ...)
+    perm_bcd = unlist(parallel::mclapply(1:nrow(params), FUN = function(j) {
+      perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = params$s[j], weights = weights,
+                      kernel = kernel, kparam = params$kparam[j], opt = TRUE, ...)
       return(perm_fit$maxBcd)
     }, mc.cores = nCores))
-    
+   
     perm_bcd_list[b, ] = perm_bcd
-  } 
+  }
+
+  # perm_bcd_list = matrix(0, nrow = nPerms, ncol = ns)
+  # for (b in 1:nPerms) {
+  #   perm_bcd = unlist(parallel::mclapply(s, FUN = function(ss) {
+  #     perm_fit = skkm(x = perm_list[[b]], nCluster = nCluster, nStart = nStart, s = ss, weights = weights,
+  #                     kernel = kernel, kparam = kparam, opt = TRUE, ...)
+  #     return(perm_fit$maxBcd)
+  #   }, mc.cores = nCores))
+    
+  #   perm_bcd_list[b, ] = perm_bcd
+  # } 
 
   out$orgBcd = org_bcd
   out$permBcd = perm_bcd_list
   out$gaps = log(org_bcd) - colMeans(log(perm_bcd_list))
   out$optInd = min(which(out$gaps == max(out$gaps)))
-  out$opt_s = s[out$optInd]
-  # out$opt_s = params[out$optInd, "s"]
-  # out$opt_kparam = params[out$optInd, "kparam"]
+  # out$opt_s = s[out$optInd]
+  out$opt_s = params[out$optInd, "s"]
+  out$opt_kparam = params[out$optInd, "kparam"]
     
-  # if (opt) {
-  #   opt_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = out$opt_s, weights = weights,
-  #                 kernel = kernel, kparam = out$opt_kparam, opt = TRUE, ...)  
-  #   out$optModel = opt_fit
-  # }
-  
   if (opt) {
     opt_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = out$opt_s, weights = weights,
-                  kernel = kernel, kparam = kparam, opt = TRUE, ...)  
+                  kernel = kernel, kparam = out$opt_kparam, opt = TRUE, ...)  
     out$optModel = opt_fit
   }
+  
+  # if (opt) {
+  #   opt_fit = skkm(x = x, nCluster = nCluster, nStart = nStart, s = out$opt_s, weights = weights,
+  #                 kernel = kernel, kparam = kparam, opt = TRUE, ...)  
+  #   out$optModel = opt_fit
+  # }
 
   out$call = call
   return(out)
